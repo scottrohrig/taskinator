@@ -6,12 +6,18 @@ var taskType = document.querySelector('select[name="task-type"]');
 const taskFormHandler = function(event) {
     event.preventDefault();
 
+    if ( !taskText.value || !taskType.value ) {
+        alert('Please fill out the task first.')
+        return false;
+    }
+
     var taskDataObj = {
         name: taskText.value,
         type: taskType.value
     };
 
     createTaskEl(taskDataObj);
+    formEl.reset();
 
 }
 
