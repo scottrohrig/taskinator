@@ -1,11 +1,15 @@
-var addTaskBtn = document.querySelector("#save-task");
+var formEl = document.querySelector('#task-form');
 var taskList = document.querySelector('#tasks-to-do');
+var taskText = document.querySelector('input[name=task-name]');
 
-const createTaskHandler = (textContent) => {
+const createTaskHandler = function(event) {
+    event.preventDefault();
+
     var listItem = document.createElement('li');
     listItem.className = 'task-item';
-    listItem.textContent = textContent;
-    taskList.appendChild(listItem)
+    listItem.textContent = taskText.value;
+    taskList.appendChild(listItem);
 }
 
-addTaskBtn.addEventListener('click', () => createTaskHandler(prompt('To Do: ')));
+formEl.addEventListener('submit', createTaskHandler);
+
