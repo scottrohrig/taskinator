@@ -39,7 +39,7 @@ const taskFormHandler = function(event) {
     }
 };
 
-/** creates list and child elements assigns attributes */
+/** creates list ( li ) and child elements ( h3.task-name+span.task-type ) assigns attributes */
 const createTaskEl = function(taskDataObj) {
     
     // create list item
@@ -58,21 +58,23 @@ const createTaskEl = function(taskDataObj) {
     
     listItem.appendChild(taskInfo);
     
+    // create Actions panel 
     var taskActionEl = createTaskActions(taskIdCounter);
     listItem.appendChild(taskActionEl);
+    // add task to appropriate tasks list based on taskAction's section option value
+    assignTasksList(taskDataObj.status, listItem)
+
+    taskDataObj.id = taskIdCounter;
     
     // add task obj to the 'tasks' data array
-    taskDataObj.id = taskIdCounter;
     tasks.push(taskDataObj);
 
     saveTasks();
-    
-    // add entire list item to To DO element
-    tasksToDo.appendChild(listItem);
+
     taskIdCounter++;
 };
 
-/** creates an inner div inside the task element with editing functionality */
+/** Returns an inner div inside the task element to give the task editing functionality */
 const createTaskActions = function(taskId) {
     // create a new div with class name "task-actions"
     var actionContainerEl = document.createElement("div");
@@ -104,7 +106,9 @@ const createTaskActions = function(taskId) {
     
     var statusChoices = ['To Do', 'In Progress', 'Completed'];
     
+    //  create the Tasks list-options in the select-status dropdown element
     for (let choice of statusChoices) {
+
         var statusOptionEl = document.createElement("option");
         statusOptionEl.textContent = choice;
         statusOptionEl.setAttribute('value', choice);
@@ -116,7 +120,7 @@ const createTaskActions = function(taskId) {
     return actionContainerEl;
 };
 
-/** delegates edit and delete actions */
+/** delegates edit and delete actions corresponding to button 'click' events */
 const taskButtonHandler = function(event) {
     
     // edit task
@@ -132,7 +136,7 @@ const taskButtonHandler = function(event) {
     }
 };
 
-/** moves tasks to the corresponding task list */
+/** Listens for 'click' events & moves tasks to the corresponding task list */
 const taskStatusChangeHandler = function(event) {
     // get the task item's id
     var taskId = event.target.getAttribute('data-task-id');
@@ -143,14 +147,7 @@ const taskStatusChangeHandler = function(event) {
 
     // find the parent task item element based on the id
     var taskSelected = document.querySelector('.task-item[data-task-id="' + taskId + '"]');
-
-    if ( statusValue === 'to do') {
-        tasksToDo.appendChild(taskSelected);
-    } else if ( statusValue === 'in progress') {
-        tasksInProgress.appendChild(taskSelected);
-    } else if ( statusValue === 'completed') {
-        tasksCompleted.appendChild(taskSelected);
-    }
+    assignTasksList(statusValue, taskSelected);
 
     // update tasks array
     for (let task of tasks) {
@@ -162,6 +159,23 @@ const taskStatusChangeHandler = function(event) {
 
     saveTasks();
 };
+
+/** assign tasks list to corresponding task status value
+ * 
+ * @param {String} statusValue 
+ * @param {*} taskSelected listItem
+ */
+const assignTasksList = function (statusValue, taskSelected) {
+
+    if ( statusValue === 'to do') {
+
+        tasksToDo.appendChild(taskSelected);
+    } else if ( statusValue === 'in progress') {
+        tasksInProgress.appendChild(taskSelected);
+    } else if ( statusValue === 'completed') {
+        tasksCompleted.appendChild(taskSelected);
+    }
+}
 
 /** gets task values from input and sets task values on task with matching id */
 const editTask = function(taskId) {
@@ -178,7 +192,6 @@ const editTask = function(taskId) {
     formEl.setAttribute('data-task-id', taskId);
 
 };
-
 
 const completeEditTask = function(taskName,taskType,taskId) {
     // get ref to task-item by id
@@ -242,50 +255,24 @@ const saveTasks = function() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
 };
 
-
-const loadTasks = function() {
-    // parse localStorage into array
-    tasks = JSON.parse(localStorage.getItem('tasks'));
-    
-    // null check validation
-    if ( !tasks ) {
-        tasks = [];
-        return false
+const loadTasks = function() { 
+    // retrieve saved data as string
+    var savedTasks = localStorage.getItem("tasks");
+    // validate empty data
+    if (!savedTasks) {
+        return false;
     }
-    
-    for (let task of tasks) {
-        
-        // keep tasks in sync
-        task.id = taskIdCounter;
-        var listItem = document.createElement('li');
-        listItem.className = 'task-item';
-        listItem.setAttribute('data-task-id', task.id);
-        
-        var taskInfo = document.createElement('div');
-        taskInfo.className = 'task-info';
-        taskInfo.innerHTML = "<h3 class='task-name'>" + task.name + "</h3><span class='task-type'>" + task.type + "</span>";
-        
-        listItem.appendChild(taskInfo);
-        
-        var taskActions = createTaskActions(task.id);
-        listItem.appendChild(taskActions);
+    // parse data
+    savedTasks = JSON.parse(savedTasks);
+    for (let task of savedTasks) {
+        createTaskEl(task);
 
-        // set the value of the `select` element in the `list item` to the corresponding task list [1: to do, 2: in progress, 3: completed]
-        if (task.status === 'to do') {
-            listItem.querySelector("select[name='status-change']").selectedIndex = 0;
-            tasksToDo.appendChild(listItem);
-        } else if (task.status === 'in progress') {
-            listItem.querySelector("select[name='status-change']").selectedIndex = 1;
-            tasksInProgress.appendChild(listItem);
-        } else if (task.status === 'completed') {
-            listItem.querySelector("select[name='status-change']").selectedIndex = 2;
-            tasksCompleted.appendChild(listItem);
-        }
-                
-        taskIdCounter++;
-        console.log(listItem);
+        console.log(task.status, task);
+        // assignTasksList(task.status,task);
     }
 };
+
+
 
 /** Show a toast notification with a given */
 const toast = function(sep=' ', ...message) {
