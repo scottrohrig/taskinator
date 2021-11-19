@@ -76,47 +76,60 @@ const createTaskEl = function(taskDataObj) {
 
 /** Returns an inner div inside the task element to give the task editing functionality */
 const createTaskActions = function(taskId) {
-    // create a new div with class name "task-actions"
-    var actionContainerEl = document.createElement("div");
-    actionContainerEl.className = "task-actions";
-    
-    // create edit button
-    var editButton = document.createElement("button");
-    editButton.textContent = "Edit";
-    editButton.className = "btn edit-btn";
-    editButton.setAttribute("data-task-id", taskId);
-    
-    actionContainerEl.appendChild(editButton);
-    
-    // create delete button
-    var deleteButton = document.createElement("button");
-    deleteButton.textContent = "Delete";
-    deleteButton.className = "btn delete-btn";
-    deleteButton.setAttribute("data-task-id", taskId);
-    
-    actionContainerEl.appendChild(deleteButton);
-    
-    // create select-status dropdown element
-    var statusSelectEl = document.createElement('select');
-    statusSelectEl.className = "select-status";
-    statusSelectEl.setAttribute('name', 'status-change');
-    statusSelectEl.setAttribute('data-task-id', taskId);
-
-    actionContainerEl.appendChild(statusSelectEl);
-    
-    var statusChoices = ['To Do', 'In Progress', 'Completed'];
-    
-    //  create the Tasks list-options in the select-status dropdown element
-    for (let choice of statusChoices) {
-
-        var statusOptionEl = document.createElement("option");
-        statusOptionEl.textContent = choice;
-        statusOptionEl.setAttribute('value', choice);
-        
-        // append to select
-        statusSelectEl.appendChild(statusOptionEl);
+    // 
+    function makeTaskActionsContainer(){
+        // create a new div with class name "task-actions"
+        var actionContainerEl = document.createElement("div");
+        actionContainerEl.className = "task-actions";
+        return actionContainerEl;
     }
     
+    function makeActionsButton(btnName) {
+        const capitalize = s => (s && s[0].toUpperCase() + s.slice(1)) || "";
+
+        var editButton = document.createElement("button");
+        editButton.textContent = capitalize(btnName);
+        editButton.className = `btn ${btnName}-btn`;
+        editButton.setAttribute("data-task-id", taskId);
+        return editButton;
+    }
+      
+    function makeStatusSelectDropdown() {
+        // create select-status dropdown element
+        var statusSelectEl = document.createElement('select');
+        statusSelectEl.className = "select-status";
+        statusSelectEl.setAttribute('name', 'status-change');
+        statusSelectEl.setAttribute('data-task-id', taskId);
+
+        var statusChoices = ['To Do', 'In Progress', 'Completed'];
+    
+        //  create the Tasks list-options in the select-status dropdown element
+        for (let choice of statusChoices) {
+    
+            var statusOptionEl = document.createElement("option");
+            statusOptionEl.textContent = choice;
+            statusOptionEl.setAttribute('value', choice);
+            
+            // append to select
+            statusSelectEl.appendChild(statusOptionEl);
+        }
+        return statusSelectEl;
+    }
+    
+    // make the actions panel
+    let actionContainerEl = makeTaskActionsContainer();
+    // make the actions 
+    // let editButton = makeEditButton();
+    // let deleteButton = makeDeleteButton();
+    let editButton = makeActionsButton('edit');
+    let deleteButton = makeActionsButton('delete');
+    let statusSelectEl = makeStatusSelectDropdown();
+    
+    // add actions to the panel
+    actionContainerEl.appendChild(editButton);
+    actionContainerEl.appendChild(deleteButton);
+    actionContainerEl.appendChild(statusSelectEl);
+       
     return actionContainerEl;
 };
 
@@ -138,6 +151,7 @@ const taskButtonHandler = function(event) {
 
 /** Listens for 'click' events & moves tasks to the corresponding task list */
 const taskStatusChangeHandler = function(event) {
+    
     // get the task item's id
     var taskId = event.target.getAttribute('data-task-id');
 
@@ -152,7 +166,7 @@ const taskStatusChangeHandler = function(event) {
     // update tasks array
     for (let task of tasks) {
         if ( task.id === parseInt(taskId) ) {
-            toast(sep=", ", task.status, statusValue);
+            toast(sep=" ", `'${task.name}' moved to: ${statusValue}`);
             task.status = statusValue;
         }
     }
@@ -162,17 +176,19 @@ const taskStatusChangeHandler = function(event) {
 
 /** assign tasks list to corresponding task status value
  * 
- * @param {String} statusValue 
+ * @param {String} statusValue ['to do', 'in progress', 'completed']
  * @param {*} taskSelected listItem
  */
 const assignTasksList = function (statusValue, taskSelected) {
 
     if ( statusValue === 'to do') {
-
+        taskSelected.querySelector("select[name='status-change']").selectedIndex = 0;
         tasksToDo.appendChild(taskSelected);
     } else if ( statusValue === 'in progress') {
+        taskSelected.querySelector("select[name='status-change']").selectedIndex = 1;
         tasksInProgress.appendChild(taskSelected);
     } else if ( statusValue === 'completed') {
+        taskSelected.querySelector("select[name='status-change']").selectedIndex = 2;
         tasksCompleted.appendChild(taskSelected);
     }
 }
@@ -240,7 +256,7 @@ const deleteTask = function(taskId) {
         // reassign tasks to updated tasks
         tasks = updatedTaskArray;
 
-        toast('Task deleted!')
+        toast(sep='','Task deleted!')
     }
     saveTasks();
 };
@@ -266,13 +282,8 @@ const loadTasks = function() {
     savedTasks = JSON.parse(savedTasks);
     for (let task of savedTasks) {
         createTaskEl(task);
-
-        console.log(task.status, task);
-        // assignTasksList(task.status,task);
     }
 };
-
-
 
 /** Show a toast notification with a given */
 const toast = function(sep=' ', ...message) {
