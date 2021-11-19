@@ -234,6 +234,7 @@ const completeEditTask = function(taskName,taskType,taskId) {
 
     // clean up [form & button] after edit
     formEl.removeAttribute('data-task-id');
+    formEl.reset();
     document.querySelector('#save-task').textContent = 'Add Task';
 };
 
