@@ -209,6 +209,7 @@ const editTask = function(taskId) {
 
 };
 
+/** updates values of edited task elements & saves edits to task array */
 const completeEditTask = function(taskName,taskType,taskId) {
     // get ref to task-item by id
     var taskSelected = document.querySelector('.task-item[data-task-id="' + taskId + '"]');
@@ -272,6 +273,7 @@ const saveTasks = function() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
 };
 
+/** retrieves array of task objects from localStorage */
 const loadTasks = function() { 
     // retrieve saved data as string
     var savedTasks = localStorage.getItem("tasks");
@@ -299,9 +301,13 @@ const toast = function(sep=' ', ...message) {
 
 };
 
-loadTasks();
-
+// Create a new task
 formEl.addEventListener('submit', taskFormHandler);
+
+// for edit and delete buttons
 pageContent.addEventListener('click', taskButtonHandler);
+
+// for changing task status
 pageContent.addEventListener('change', taskStatusChangeHandler);
 
+loadTasks();
